@@ -23,6 +23,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CANDIDATE')
     company_name = models.CharField(max_length=255, null=True, blank=True)
     is_verified = models.BooleanField(default=False)
+    is_vip = models.BooleanField(default=False)
 
     SEX_CHOICES = [
         ('NAM', 'Nam'),
@@ -46,6 +47,14 @@ class Notification(BaseModel):
     def __str__(self):
         return self.title
 
+class Transaction(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    payment_id = models.CharField(max_length=100, unique=True) # Mã từ PayPal
+    amount = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, default='CREATED') # CREATED, COMPLETED, FAILED
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} - {self.status}"
 
 @receiver(pre_save, sender=User)
 def notify_admin_approval(sender, instance, **kwargs):

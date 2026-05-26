@@ -23,9 +23,7 @@ const parseSalaryToMillions = (salaryStr) => {
     if (!salaryStr) return 0;
     const str = salaryStr.toLowerCase().trim();
     
-    if (str.includes('thỏa thuận') || str.includes('thoa thuan')) {
-        return -1; 
-    }
+    if (str.includes('thỏa thuận') || str.includes('thoa thuan')) return -1; 
     
     if (str.includes('$')) {
         const numbers = str.match(/\d+/g);
@@ -40,7 +38,6 @@ const parseSalaryToMillions = (salaryStr) => {
         const vals = numbers.map(n => parseInt(n, 10));
         return Math.max(...vals); 
     }
-    
     return 0;
 };
 
@@ -96,7 +93,6 @@ const Home = ({ navigation }) => {
                     const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
                     
                     const unreadExists = appsData.some(item => {
-                        // 🔴 ĐÃ ĐỒNG BỘ THEO STATUS
                         const currentKey = `${item.id}_status_${item.status}`;
                         return !readIds.includes(currentKey);
                     });
@@ -157,20 +153,18 @@ const Home = ({ navigation }) => {
         fetchData();
     }, []);
 
-    const filteredJobs = jobs
+    // 1. Lọc dữ liệu thô theo các tiêu chí tìm kiếm/bộ lọc trước
+    const allFilteredJobs = jobs
         .filter(job => {
             const matchCategory = !activeCategoryId || job.category === activeCategoryId;
-            
             const matchSearch = job.title.toLowerCase().includes(searchText.toLowerCase()) ||
                                 (job.employer_name && job.employer_name.toLowerCase().includes(searchText.toLowerCase()));
-            
             const matchLocation = filterLocation === 'Tất cả' || 
                                   (job.location && job.location.toLowerCase().includes(filterLocation.toLowerCase()));
             
             let matchSalary = true;
             if (filterSalary !== 'Tất cả') {
                 const salValue = parseSalaryToMillions(job.salary);
-                
                 if (filterSalary === 'Dưới 10 triệu') {
                     matchSalary = salValue > 0 && salValue < 10;
                 } else if (filterSalary === '10 - 20 triệu') {
@@ -190,6 +184,10 @@ const Home = ({ navigation }) => {
             }
             return 0;
         });
+
+    // 2. CHIA ĐÔI DỮ LIỆU THÀNH 2 MẢNG RIÊNG BIỆT (VIP VÀ THƯỜNG)
+    const featuredJobs = allFilteredJobs.filter(job => job.is_featured);
+    const regularJobs = allFilteredJobs.filter(job => !job.is_featured);
 
     const toggleLike = async (jobId) => {
         try {
@@ -228,10 +226,10 @@ const Home = ({ navigation }) => {
         await AsyncStorage.setItem(`likedJobs_${userId}`, JSON.stringify(newLikes)); 
     };
 
-    const renderJobItem = ({ item }) => {
+    // Render item dành riêng cho việc làm cuộn ngang VIP ở phía trên
+    const renderFeaturedJobItem = ({ item }) => {
         const shortLocation = item.location ? item.location.split(',').pop().trim() : "Chưa cập nhật";
         const isLiked = likedJobs.includes(item.id);
-        
         const companyName = item.employer_name || "Nhà tuyển dụng";
         const avatarUrl = item.employer_avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
 
@@ -242,15 +240,62 @@ const Home = ({ navigation }) => {
                     isLikedInitially: isLiked,
                     onLikeChange: syncLikeState
                 })}
-                className="bg-white p-5 rounded-xl mb-4 mx-4 shadow-sm border border-blue-200"
+                className="p-4 rounded-xl mr-4 bg-amber-50 border border-amber-300 w-72 shadow-sm"
+            >
+                <View className="flex-row items-center mb-3">
+                    <View className="w-12 h-12 rounded-xl border border-amber-100 overflow-hidden mr-3 bg-white justify-center items-center">
+                        <Image source={{ uri: avatarUrl }} className="w-full h-full" resizeMode="cover" />
+                    </View>
+                    <View className="flex-1">
+                        <View className="flex-row items-center bg-red-500 self-start px-1.5 py-0.5 rounded mb-1">
+                            <MaterialIcons name="flash-on" size={10} color="white" />
+                            <Text className="text-white text-[9px] font-bold ml-0.5">TOP HOT</Text>
+                        </View>
+                        <Text className="text-sm font-semibold text-gray-500 flex-1" numberOfLines={1}>
+                            {companyName}
+                        </Text>
+                    </View>
+                    <TouchableOpacity onPress={(e) => { e.stopPropagation(); toggleLike(item.id); }} className="p-1">
+                        <MaterialIcons name={isLiked ? "favorite" : "favorite-border"} size={22} color={isLiked ? "#ef4444" : "#162E93"} />
+                    </TouchableOpacity>
+                </View>
+
+                <Text className="text-base font-bold text-amber-900 mb-3 h-12" numberOfLines={2}>
+                    {item.title}
+                </Text>
+
+                <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center bg-emerald-600 px-2 py-1 rounded">
+                        <Text className="text-white font-bold text-xs">{item.salary}</Text>
+                    </View>
+                    <View className="flex-row items-center flex-1 justify-end ml-2">
+                        <MaterialIcons name="location-on" size={12} color="#78350f" />
+                        <Text className="text-amber-900 text-xs ml-0.5" numberOfLines={1}>{shortLocation}</Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    // Render item dành cho danh sách việc làm Bình thường ở phía dưới
+    const renderJobItem = ({ item }) => {
+        const shortLocation = item.location ? item.location.split(',').pop().trim() : "Chưa cập nhật";
+        const isLiked = likedJobs.includes(item.id);
+        const companyName = item.employer_name || "Nhà tuyển dụng";
+        const avatarUrl = item.employer_avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+
+        return (
+            <TouchableOpacity 
+                onPress={() => navigation.navigate('JobDetail', { 
+                    job: item,
+                    isLikedInitially: isLiked,
+                    onLikeChange: syncLikeState
+                })}
+                className="p-5 rounded-xl mb-4 mx-4 shadow-sm border bg-white border-blue-100"
             >
                 <View className="flex-row items-start mb-4">
                     <View className="w-16 h-16 rounded-2xl border border-gray-100 overflow-hidden mr-4 bg-gray-50 shadow-sm justify-center items-center">
-                        <Image 
-                            source={{ uri: avatarUrl }} 
-                            className="w-full h-full" 
-                            resizeMode="cover" 
-                        />
+                        <Image source={{ uri: avatarUrl }} className="w-full h-full" resizeMode="cover" />
                     </View>
                     
                     <View className="flex-1">
@@ -277,19 +322,73 @@ const Home = ({ navigation }) => {
                         <MaterialIcons name="attach-money" size={16} color="#10b981" />
                         <Text className="text-green-500 font-bold">{item.salary}</Text>
                     </View>
-                    <View className="flex-row items-center flex-1 justify-end ml-2 ">
+                    <View className="flex-row items-center flex-1 justify-end ml-2">
                         <MaterialIcons name="location-on" size={14} color="#9ca3af" />
-                        <Text className="text-gray-700 text-sm ml-1" numberOfLines={1} ellipsizeMode="tail">{shortLocation}</Text>
+                        <Text className="text-gray-700 text-sm ml-1" numberOfLines={1}>{shortLocation}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
         );
     };
 
+    // Gom toàn bộ Categories và Việc làm VIP vào Header Component
+    const renderListHeader = () => (
+        <View>
+            {/* Thanh danh mục ngành nghề */}
+            <View className="py-4">
+                <FlatList 
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={[{id: null, name: 'Tất cả'}, ...categories]}
+                    keyExtractor={(item) => item.id?.toString() || 'all'}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity 
+                            onPress={() => setActiveCategoryId(item.id)}
+                            className={`border px-6 py-2.5 mr-3 rounded-xl flex-row items-center ${activeCategoryId === item.id ? 'bg-yellow-400 shadow-md border-yellow-400' : 'bg-blue-100 border-blue-200'}`}
+                        >
+                            <Text className={`font-bold ${activeCategoryId === item.id ? 'text-gray-900' : 'text-[#162E93]'}`}>{item.name}</Text>
+                        </TouchableOpacity>
+                    )}
+                />
+            </View>
+
+            {/* PHẦN 1: VIỆC LÀM TỐT NHẤT (Chỉ hiện khi có tin VIP) */}
+            {featuredJobs.length > 0 && (
+                <View className="mb-6">
+                    <View className="flex-row items-center justify-between px-4 mb-3">
+                        <View className="flex-row items-center">
+                            <MaterialIcons name="stars" size={22} color="#eab308" />
+                            <Text className="text-xl font-bold text-gray-900 ml-1.5">Việc làm tốt nhất</Text>
+                        </View>
+                        <Text className="text-xs text-amber-700 font-bold bg-amber-100 px-2.5 py-1 rounded-full">Đối tác ưu tiên</Text>
+                    </View>
+                    <FlatList
+                        horizontal
+                        data={featuredJobs}
+                        keyExtractor={(item) => `featured-${item.id}`}
+                        renderItem={renderFeaturedJobItem}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 4 }}
+                    />
+                </View>
+            )}
+
+            {/* PHẦN 2: TIÊU ĐỀ CHO PHẦN DƯỚI (Đặt tên là: Việc làm mới nhất) */}
+            <View className="flex-row items-center px-4 mb-4 mt-2">
+                <MaterialIcons name="grid-view" size={20} color="#162E93" />
+                <Text className="text-xl font-bold text-gray-900 ml-1.5">
+                    {sortBy === 'newest' ? 'Việc làm mới nhất' : 'Việc làm lương cao'}
+                </Text>
+            </View>
+        </View>
+    );
+
     return (
         <View className="flex-1 bg-gray-50 ">
             <StatusBar barStyle="light-content" backgroundColor="#162E93" translucent={true} />
             
+            {/* Sticky Search Header */}
             <View 
                 style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 12 }} 
                 className="pb-5 px-4 shadow-lg z-10"
@@ -308,37 +407,26 @@ const Home = ({ navigation }) => {
                 </View>
             </View>
 
-            <View className="py-4">
-                <FlatList 
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    data={[{id: null, name: 'Tất cả'}, ...categories]}
-                    keyExtractor={(item) => item.id?.toString() || 'all'}
-                    contentContainerStyle={{ paddingHorizontal: 16 }}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity 
-                            onPress={() => setActiveCategoryId(item.id)}
-                            className={`border border-blue-500 px-6 py-2.5 mr-3 rounded-xl flex-row items-center ${activeCategoryId === item.id ? 'bg-yellow-400 shadow-md border-yellow-400' : 'bg-blue-100 border-blue-200'}`}
-                        >
-                            <Text className={`font-bold ${activeCategoryId === item.id ? 'text-gray-900' : 'text-[#162E93]'}`}>{item.name}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
-
             {loading ? (
                 <ActivityIndicator size="large" color="#162E93" className="mt-10"  />
             ) : (
+                /* FlatList chính của cả màn hình (Hiển thị các công việc bình thường) */
                 <FlatList 
-                    data={filteredJobs}
+                    data={regularJobs}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderJobItem}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100 }} 
-                    ListEmptyComponent={<Text className="text-center text-gray-400 mt-20">Không tìm thấy công việc phù hợp.</Text>}
+                    ListHeaderComponent={renderListHeader}
+                    ListEmptyComponent={
+                        <Text className="text-center text-gray-400 mt-10 px-4">
+                            Không tìm thấy công việc phổ thông nào phù hợp.
+                        </Text>
+                    }
                 />
             )}
 
+            {/* Bộ lọc Modal */}
             <Modal animationType="slide" transparent={true} visible={isFilterVisible} onRequestClose={() => setFilterVisible(false)}>
                 <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setFilterVisible(false)} />
                 <View className="bg-white rounded-t-3xl p-6 absolute bottom-0 w-full shadow-2xl" style={{ maxHeight: '85%' }}>
@@ -349,7 +437,7 @@ const Home = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView showsVerticalScrollIndicator={false}>                      
+                    <ScrollView showsVerticalScrollIndicator={false}>                     
                         <Text className="font-bold text-gray-700 mb-3 text-base">Ngành nghề</Text>
                         <View className="flex-row flex-wrap mb-5">
                             {[{id: null, name: 'Tất cả'}, ...categories].map((cat) => (
@@ -404,6 +492,7 @@ const Home = ({ navigation }) => {
                 </View>
             </Modal>
 
+            {/* Bottom Tab Bar */}
             <View className="flex-row bg-white py-3 border-t border-gray-100 justify-around items-center absolute bottom-0 w-full pb-6 shadow-2xl">
                 <TouchableOpacity className="items-center">
                     <MaterialIcons name="home" size={28} color="#162E93" />

@@ -9,7 +9,8 @@ import {
     StatusBar, 
     Alert, 
     Modal,
-    Platform 
+    Platform,
+    Linking
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -153,6 +154,30 @@ const Profile = ({ navigation }) => {
         setInfoModalVisible(true);
     };
 
+    // Hàm xử lý mở file CV
+    const handleOpenMyCV = async () => {
+        const cvUrl = user?.cv_file; 
+    
+        if (!cvUrl) {
+            Alert.alert("Thông báo", "Bạn chưa cập nhật file CV nào trên hệ thống.");
+            return;
+        }
+    
+        const fullUrl = cvUrl.startsWith('http') ? cvUrl : `${HOST}${cvUrl}`;
+    
+        try {
+            const supported = await Linking.canOpenURL(fullUrl);
+            if (supported) {
+                await Linking.openURL(fullUrl);
+            } else {
+                Alert.alert("Lỗi", "Thiết bị của bạn không hỗ trợ mở liên kết này.");
+            }
+        } catch (error) {
+            Alert.alert("Lỗi", "Đã xảy ra lỗi khi cố gắng mở file CV.");
+            console.error("Lỗi mở CV:", error);
+        }
+    };
+
     if (loading) return (
         <View className="flex-1 justify-center items-center bg-white">
             <ActivityIndicator size="large" color="#162E93" />
@@ -217,7 +242,7 @@ const Profile = ({ navigation }) => {
             >
                 <Text className="text-gray-500 font-bold mb-1 ml-1 text-xs tracking-wider">QUẢN LÝ HỒ SƠ & VIỆC LÀM</Text>
                 <View className="bg-white rounded-xl p-4 shadow-sm mb-6 border border-blue-100">
-                    <TouchableOpacity onPress={() => Alert.alert("Thông báo", "Chức năng xem CV đang phát triển")} className="flex-row items-center py-2">
+                    <TouchableOpacity onPress={handleOpenMyCV} className="flex-row items-center py-2">
                         <View className="p-2 bg-blue-50 rounded-full">
                             <MaterialIcons name="description" size={24} color="#162E93" />
                         </View>

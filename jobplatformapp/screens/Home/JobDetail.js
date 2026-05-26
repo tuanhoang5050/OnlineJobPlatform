@@ -70,7 +70,6 @@ const JobDetail = ({ route, navigation }) => {
     const [similarJobs, setSimilarJobs] = useState([]);
     const [loadingSimilar, setLoadingSimilar] = useState(true);
     
-    // 🔴 Đã đổi lại thành tên biến chuẩn: likedJobs
     const [likedJobs, setLikedJobs] = useState([]);
     
     const [appStatus, setAppStatus] = useState(null); 
@@ -184,15 +183,15 @@ const JobDetail = ({ route, navigation }) => {
         }
     };
 
-const syncLikeState = useCallback((id, newLikedState) => {
-    setLikedJobs(prev => {
-        if (newLikedState) {
-            return prev.includes(id) ? prev : [...prev, id];
-        } else {
-            return prev.filter(likedId => likedId !== id);
-        }
-    });
-}, []);
+    const syncLikeState = useCallback((id, newLikedState) => {
+        setLikedJobs(prev => {
+            if (newLikedState) {
+                return prev.includes(id) ? prev : [...prev, id];
+            } else {
+                return prev.filter(likedId => likedId !== id);
+            }
+        });
+    }, []);
 
     const handlePickCV = async () => {
         const result = await DocumentPicker.getDocumentAsync({});
@@ -295,6 +294,10 @@ const syncLikeState = useCallback((id, newLikedState) => {
                     similarJobs.map((item) => {
                         const isItemLiked = likedJobs.includes(item.id);
                         
+                        // 🌟 BƯỚC 1: Xác định bài post có "nổi bật" hay không dựa vào trường dữ liệu từ API
+                        // (Bạn hãy chỉnh lại 'item.is_featured' hoặc 'item.featured' cho đúng với Back-end của bạn nhé)
+                        const isFeatured = item.is_featured ;
+
                         const companyName = item.company_name || item.employer?.company_name || "Công ty tuyển dụng";
                         const shortLocation = getCityFromAddress(item.location);
                         
@@ -312,8 +315,21 @@ const syncLikeState = useCallback((id, newLikedState) => {
                                     isLikedInitially: isItemLiked,
                                     onLikeChange: syncLikeState
                                 })}
-                                className="bg-white p-5 rounded-xl mb-4 shadow-sm border border-blue-200"
+                                // 🌟 BƯỚC 2: Định dạng border và background nổi bật nếu đúng điều kiện
+                                className={`p-5 rounded-xl mb-4 shadow-sm border ${
+                                    isFeatured 
+                                        ? 'bg-amber-50/50 border-amber-400 shadow-md' 
+                                        : 'bg-white border-blue-200'
+                                }`}
                             >
+                                {/* 🌟 BƯỚC 3: Thêm chiếc Badge "Nổi bật" nhỏ gọn phía trên cùng của Card */}
+                                {isFeatured && (
+                                    <View className="flex-row items-center bg-amber-100 border border-amber-300 self-start px-2 py-0.5 rounded-md mb-3">
+                                        <MaterialIcons name="star" size={12} color="#d97706" />
+                                        <Text className="text-[#d97706] text-[10px] font-bold ml-1 uppercase tracking-wider">Nổi bật</Text>
+                                    </View>
+                                )}
+
                                 <View className="flex-row items-start mb-4">
                                     <View className="w-16 h-16 rounded-2xl border border-gray-100 overflow-hidden mr-4 bg-gray-50 shadow-sm justify-center items-center">
                                         <Image source={{ uri: avatarUrl }} className="w-full h-full" resizeMode="cover" />
@@ -357,6 +373,7 @@ const syncLikeState = useCallback((id, newLikedState) => {
                 )}
             </ScrollView>
 
+            {/* Các thành phần Bottom Bar & Modals giữ nguyên bên dưới */}
             <View className="absolute bottom-0 w-full bg-white px-5 py-3 border-t border-gray-100 shadow-2xl flex-row justify-between items-center pb-4">
                  <TouchableOpacity onPress={() => toggleLike(currentJobId)} className="p-2 bg-white rounded-3xl mr-4 border border-blue-700">
                     <MaterialIcons name={isLiked ? "favorite" : "favorite-border"} size={28} color={isLiked ? "#ef4444" : "#002b75"} />
@@ -485,7 +502,6 @@ const syncLikeState = useCallback((id, newLikedState) => {
                     </View>
                 </View>
             </Modal>
-
         </View>
     );
 };

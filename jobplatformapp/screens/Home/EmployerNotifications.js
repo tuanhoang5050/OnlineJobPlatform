@@ -51,7 +51,7 @@ const getSystemNotificationDetail = (sysNotif) => {
             title: sysNotif.title,
             body: sysNotif.body,
             icon: 'verified-user', iconColor: '#10b981', bgColor: 'bg-green-50', borderColor: 'border-green-300',
-            navTarget: 'EmployerProfile' // Duyệt xong thì chuyển qua Profile xem cho sướng
+            navTarget: 'EmployerProfile' 
         };
     } else {
         return {
@@ -79,28 +79,28 @@ const EmployerNotifications = ({ navigation }) => {
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
             
-            // 1. Lấy thông tin user hiện tại
+            
             const userRes = await axios.get(`${HOST}/api/users/current-user/`, config);
             const currentHrId = userRes.data.id;
 
-            // 2. GỌI SONG SONG 2 API: Danh sách ứng tuyển VÀ Danh sách thông báo hệ thống
+            
             const [appRes, sysRes] = await Promise.all([
                 axios.get(`${HOST}/api/applications/`, config),
-                axios.get(`${HOST}/api/notifications/`, config) // 🔴 API TỪ BẢNG NOTIFICATION
+                axios.get(`${HOST}/api/notifications/`, config) 
             ]);
 
-            // 3. Lọc danh sách ứng viên (giữ nguyên logic cũ)
+           
             const appsData = appRes.data.results || appRes.data;
             const myCandidates = appsData.filter(app => {
                 const jobEmployerId = app.job?.employer?.id || app.job?.employer || app.job?.employer_id;
                 return jobEmployerId === currentHrId;
             }).map(app => ({ ...app, notifType: 'APP' })); // Đánh dấu loại là 'APP'
 
-            // 4. Lấy danh sách thông báo hệ thống
+           
             const sysData = sysRes.data.results || sysRes.data;
             const sysNotifs = sysData.map(sys => ({ ...sys, notifType: 'SYS' })); // Đánh dấu loại là 'SYS'
 
-            // 5. GỘP CẢ 2 MẢNG LẠI & SẮP XẾP MỚI NHẤT
+            
             const mixedNotifications = [...myCandidates, ...sysNotifs].sort((a, b) => {
                 const dateA = new Date(a.updated_date || a.created_date);
                 const dateB = new Date(b.updated_date || b.created_date);
@@ -146,7 +146,7 @@ const EmployerNotifications = ({ navigation }) => {
             const userId = await AsyncStorage.getItem('current_user_id');
             if (!userId) return;
 
-            // Đánh dấu tất cả của Employer
+            
             const allKeys = notifications.map(item => `${item.notifType}_${item.id}_${item.updated_date || item.created_date}`);
             await AsyncStorage.setItem(`read_notifications_employer_${userId}`, JSON.stringify(allKeys));
 

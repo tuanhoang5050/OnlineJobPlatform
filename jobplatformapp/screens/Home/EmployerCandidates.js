@@ -103,12 +103,16 @@ const EmployerCandidates = ({ navigation }) => {
         }
     };
 
+
     useFocusEffect(
         useCallback(() => {
             fetchCandidates();
             checkUnreadNotifications(); // 🔴 Gọi hàm check khi focus
         }, [])
     );
+
+
+
 
     const updateStatus = async (applicationId, newStatus) => {
         try {

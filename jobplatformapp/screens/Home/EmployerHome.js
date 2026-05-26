@@ -13,10 +13,8 @@ const EmployerHome = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('Tất cả'); 
     
-    // State lưu trạng thái có thông báo chưa đọc hay không
     const [hasUnread, setHasUnread] = useState(false);
 
-    // Tự động tính toán chiều cao thanh trạng thái
     const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight : 0;
 
     const fetchData = async () => {
@@ -30,6 +28,7 @@ const EmployerHome = ({ navigation }) => {
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const userRes = await axios.get(`${HOST}/api/users/current-user/`, config);
             const currentUser = userRes.data;
+            
             setUser(currentUser);
 
             const jobsRes = await axios.get(`${HOST}/api/jobs/`, config); 
@@ -47,7 +46,7 @@ const EmployerHome = ({ navigation }) => {
         }
     };
 
-    // 🔴 HÀM KIỂM TRA CHẤM ĐỎ ĐÃ ĐƯỢC ĐỒNG BỘ HOÀN TOÀN VỚI MÀN HÌNH THÔNG BÁO
+    
     const checkUnreadNotifications = async () => {
         try {
             const token = await AsyncStorage.getItem('access_token');
@@ -56,39 +55,32 @@ const EmployerHome = ({ navigation }) => {
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
             
-            // 1. Gọi song song 2 API y hệt như bên trang Notifications
             const [appRes, sysRes] = await Promise.all([
                 axios.get(`${HOST}/api/applications/`, config),
                 axios.get(`${HOST}/api/notifications/`, config)
             ]);
             
-            // 2. Lọc danh sách Đơn ứng tuyển của HR này
             const appsData = appRes.data.results || appRes.data;
             const myCandidates = appsData.filter(app => {
                 const jobEmployerId = app.job?.employer?.id || app.job?.employer || app.job?.employer_id;
                 return String(jobEmployerId) === String(userId);
             });
 
-            // 3. Lấy danh sách Thông báo hệ thống
             const sysData = sysRes.data.results || sysRes.data;
 
-            // 4. Lấy danh sách ID đã đọc từ AsyncStorage
             const savedReadIds = await AsyncStorage.getItem(`read_notifications_employer_${userId}`);
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
             
-            // 5. Kiểm tra xem có Đơn ứng tuyển (APP) nào chưa đọc không
             const unreadAppExists = myCandidates.some(item => {
                 const currentKey = `APP_${item.id}_${item.updated_date || item.created_date}`;
                 return !readIds.includes(currentKey);
             });
 
-            // 6. Kiểm tra xem có Thông báo hệ thống (SYS) nào chưa đọc không
             const unreadSysExists = sysData.some(item => {
                 const currentKey = `SYS_${item.id}_${item.updated_date || item.created_date}`;
                 return !readIds.includes(currentKey);
             });
 
-            // Nếu 1 trong 2 loại có thông báo mới -> Bật chấm đỏ
             setHasUnread(unreadAppExists || unreadSysExists);
             
         } catch (error) {
@@ -100,11 +92,11 @@ const EmployerHome = ({ navigation }) => {
     useFocusEffect(
         React.useCallback(() => {
             fetchData();
-            checkUnreadNotifications(); // Gọi hàm kiểm tra mỗi khi màn hình được focus vào
+            checkUnreadNotifications(); 
         }, [])
     );
 
-    // Logic bộ lọc kết hợp cả Tìm Kiếm lẫn Tab Trạng Thái
+   
     const filteredJobs = jobs.filter(job => {
         const matchSearch = job.title.toLowerCase().includes(searchText.toLowerCase());
         if (statusFilter === 'Tất cả') return matchSearch;
@@ -114,14 +106,23 @@ const EmployerHome = ({ navigation }) => {
     });
 
     const renderJobItem = ({ item }) => {
-        const shortLocation = item.location ? item.location.split(',').pop().trim() : "Chưa cập nhật";
+        // Lấy cờ is_featured từ Backend
+        const isFeatured = item.is_featured || false;
+
         return (
             <TouchableOpacity 
                 onPress={() => navigation.navigate('EditJobPost', { job: item })}
-                className="bg-white p-5 rounded-2xl mb-4 mx-4 shadow-sm border border-yellow-500"
+                // 🔴 ĐỔI MÀU NỀN NẾU LÀ TIN VIP
+                className={`p-5 rounded-2xl mb-4 mx-4 shadow-sm ${isFeatured ? 'bg-yellow-50 border-2 border-yellow-400' : 'bg-white border border-yellow-500'}`}
             >
                 <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-lg font-bold text-[#162E93] flex-1 mr-4">{item.title}</Text>
+                    <View className="flex-1 mr-4 flex-row items-center">
+                        {/* 🔴 HIỆN HUY HIỆU HOT */}
+                        {isFeatured && (
+                            <Text className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded mr-2">HOT</Text>
+                        )}
+                        <Text className={`text-lg font-bold ${isFeatured ? 'text-yellow-700' : 'text-[#162E93]'}`}>{item.title}</Text>
+                    </View>
                     <TouchableOpacity className="p-1 bg-blue-50 rounded-lg">
                         <MaterialIcons name="edit" size={20} color="#162E93" />
                     </TouchableOpacity>
@@ -137,7 +138,7 @@ const EmployerHome = ({ navigation }) => {
                 <View className="flex-row justify-between items-center">
                     <View className="flex-row items-center bg-green-50 px-2 py-1.5 rounded-lg border border-green-400">
                         <MaterialIcons name="attach-money" size={16} color="#10b981" />
-                        <Text className="text-green-500 font-bold">{item.salary} VNĐ</Text>
+                        <Text className="text-green-500 font-bold">{item.salary}</Text>
                     </View>
                     <View className="flex-row items-center flex-1 justify-end ml-2 ">
                         <MaterialIcons name="access-time" size={14} color="#9ca3af" />
@@ -210,7 +211,6 @@ const EmployerHome = ({ navigation }) => {
                 />
             )}
 
-            {/* THANH NAVIGATION DƯỚI */}
             <View className="flex-row bg-white py-3 border-t border-gray-100 justify-around items-center absolute bottom-0 w-full pb-6 shadow-2xl">
                 <TouchableOpacity className="items-center">
                     <MaterialIcons name="dashboard" size={28} color="#162E93" />

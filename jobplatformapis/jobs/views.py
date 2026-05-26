@@ -40,7 +40,6 @@ class JobPostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
-        # 🔴 LỚP KHIÊN BẢO MẬT: Chặn đăng tin nếu chưa được Admin phê duyệt
         if not self.request.user.is_verified:
             raise PermissionDenied("Tài khoản của bạn chưa được Quản trị viên phê duyệt. Không thể đăng tin.")
 

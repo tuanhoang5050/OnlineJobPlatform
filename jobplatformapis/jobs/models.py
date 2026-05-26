@@ -20,6 +20,7 @@ class JobPost(BaseModel):
     likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_jobs', blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='job_posts')
     employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_posts')
+    is_featured = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -27,3 +28,4 @@ class JobPost(BaseModel):
     class Meta:
         verbose_name = 'Job Post'
         verbose_name_plural = 'Job Posts'
+

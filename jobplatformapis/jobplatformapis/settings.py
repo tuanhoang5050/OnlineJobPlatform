@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import paypalrestsdk
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,26 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+PAYPAL_CLIENT_ID = 'AdBrJ3TR3wSR8DLM8MKbCGoGURUj4CRNwQdGpBvfkR8AetQS9givn4nGjEFFuS-77nXJKDn9lMkQhP8e'
+PAYPAL_SECRET = 'EO1SW-JXTxnO6_7VOgBOhIK1ZO_WYKYkT-OfBWG-5NtqX6fX2HBcx1UlnOo2WHD3rfo_hwS1QWLiZ3sm'
+
+paypalrestsdk.configure({
+  "mode": "sandbox", # Đổi thành "live" khi triển khai thật
+  "client_id": PAYPAL_CLIENT_ID,
+  "client_secret": PAYPAL_SECRET
+})
+
+PAYPAL_RETURN_URL = 'https://vicareer.app/payment-success'
+PAYPAL_CANCEL_URL = 'https://vicareer.app/payment-cancel'
+
+# Cấu hình MoMo Sandbox (Dùng chung cho Developer)
+MOMO_PARTNER_CODE = "MOMOBKUN20180529"
+MOMO_ACCESS_KEY = "klm05TvNBzhg7h7j"
+MOMO_SECRET_KEY = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa"
+MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
+
+MOMO_RETURN_URL = "https://vicareer.app/payment-success"
+MOMO_IPN_URL = "https://vicareer.app/momo-ipn"
 
 # Application definition
 

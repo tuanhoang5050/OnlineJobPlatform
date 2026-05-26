@@ -1,10 +1,11 @@
 from rest_framework import serializers
-from .models import User, Notification # 🔴 Nhớ import Notification
+from .models import User, Notification, Transaction  # 🔴 Nhớ import Notification
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'email', 'role', 'avatar','sex', 'phone_number', 'location', 'company_name', 'is_verified']
+        fields = ['id', 'first_name', 'last_name', 'username', 'password', 'email', 'role', 'avatar','sex',
+                  'phone_number', 'location', 'company_name', 'is_verified','is_vip']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -31,3 +32,8 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'title', 'body', 'type', 'created_date']
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ['id', 'payment_id', 'amount', 'status', 'created_date']

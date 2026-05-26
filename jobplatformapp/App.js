@@ -17,6 +17,7 @@ import EditJobPost from './screens/Home/EditJobPost'; // 🔴 IMPORT
 import EmployerJobManager from './screens/Home/EmployerJobManager'; // 🔴 IMPORT
 import Notifications from './screens/Home/Notifications'; // 🔴
 import EmployerNotifications from './screens/Home/EmployerNotifications'; // 🔴 IMPORT
+import TransactionHistory from './screens/User/TransactionHistory'; // 🔴 IMPORT
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ export default function App() {
         <Stack.Screen name="EmployerCandidates" component={EmployerCandidates} options={{ headerShown: false }} />
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
         <Stack.Screen name="EmployerNotifications" component={EmployerNotifications} options={{ headerShown: false }} />
+        <Stack.Screen name="TransactionHistory" component={TransactionHistory} options={{ headerShown: false }} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );

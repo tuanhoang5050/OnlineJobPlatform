@@ -56,7 +56,7 @@ const CreateJobPost = ({ navigation }) => {
     };
 
     const handlePostJob = async () => {
-        // 🔴 CHẶN NGAY NẾU CHƯA ĐƯỢC DUYỆT
+      
         if (!isVerified) {
             Alert.alert(
                 "Tài khoản chưa xác thực", 
@@ -122,7 +122,7 @@ const CreateJobPost = ({ navigation }) => {
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
                 
-                {/* 🔴 Thông báo nhỏ cảnh báo người dùng chưa duyệt */}
+                
                 {!isVerified && (
                     <View className="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 flex-row items-center">
                         <MaterialIcons name="warning" size={24} color="#ef4444" />

@@ -9,6 +9,9 @@ const Login = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false); 
 
+    const clientId = process.env.EXPO_PUBLIC_CLIENT_ID;
+    const clientSecret = process.env.EXPO_PUBLIC_CLIENT_SECRET;
+
     const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ Email và Mật khẩu');
@@ -22,8 +25,8 @@ const Login = ({ navigation }) => {
             payload.append('grant_type', 'password');
             payload.append('username', email); 
             payload.append('password', password);
-            payload.append('client_id', 'JZWc5J5NnMtaPWAiJfpY6Ac78w75whDHXXCeHw56'); 
-            payload.append('client_secret', 'hU09yyT1uSP5RotZAHjD3YIAscPKuOuagkiUphDTdC3xsqMJUdIb1BcZ0AiebzGHBRB0PfeZg0lQ7HbF0Hjy5CqLLhgVkGK2rKYoiL5BMHdXXEuOg2znxQ75zdDjkl7R'); 
+            payload.append('client_id', clientId); 
+            payload.append('client_secret', clientSecret); 
 
             const response = await axios.post('http://10.0.2.2:8001/o/token/', payload.toString(), {
                 headers: {
