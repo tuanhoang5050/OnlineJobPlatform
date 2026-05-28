@@ -38,7 +38,7 @@ const Login = ({ navigation }) => {
                 const token = response.data.access_token;
                 await AsyncStorage.setItem('access_token', token);
                 
-                // 🔴 BƯỚC MỚI: GỌI API LẤY THÔNG TIN USER ĐỂ CHECK ROLE & ID
+              
                 const userRes = await axios.get('http://10.0.2.2:8001/api/users/current-user/', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -46,11 +46,11 @@ const Login = ({ navigation }) => {
                 const userData = userRes.data;
                 const role = userData.role;
                 
-                // Lưu ID và Role vào máy
+               
                 await AsyncStorage.setItem('current_user_id', String(userData.id));
                 await AsyncStorage.setItem('user_role', role); 
 
-                // 🔴 RẼ NHÁNH ĐIỀU HƯỚNG
+                
                 if (role === 'EMPLOYER') {
                     navigation.reset({ index: 0, routes: [{ name: 'EmployerHome' }] });
                 } else {
@@ -67,20 +67,20 @@ const Login = ({ navigation }) => {
     };
 
     return (
-        // 🔴 1. BỌC KEYBOARD AVOIDING VIEW Ở NGOÀI CÙNG
+        
         <KeyboardAvoidingView 
             style={{ flex: 1, backgroundColor: "#162E93" }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <StatusBar barStyle="light-content" backgroundColor="#162E93" />
 
-            {/* 🔴 2. BỌC SCROLLVIEW ĐỂ CÓ THỂ CUỘN LÊN KHI BÀN PHÍM XUẤT HIỆN */}
+            
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1 }} 
                 showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled" // Giúp bấm nút Đăng nhập mượt hơn mà không cần ẩn bàn phím trước
+                keyboardShouldPersistTaps="handled" 
             >
-                {/* Phần Logo bên trên */}
+             
                 <View className="flex items-center pt-12 pb-4">
                     <View className="flex-row justify-center">
                         <Image 
@@ -91,7 +91,7 @@ const Login = ({ navigation }) => {
                     </View>
                 </View>
 
-                {/* Phần Form màu trắng bên dưới */}
+                
                 <View 
                     className="flex-1 bg-white px-9 pt-3 justify-center"
                     style={{ borderTopLeftRadius: 35, borderTopRightRadius: 35 }}

@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker'; 
 import { useFocusEffect } from '@react-navigation/native';
 import { WebView } from 'react-native-webview'; 
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const EmployerProfile = ({ navigation }) => {
     const [user, setUser] = useState(null);
@@ -16,13 +16,14 @@ const EmployerProfile = ({ navigation }) => {
 
     const [paymentUrl, setPaymentUrl] = useState(null); 
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
-    
-    // 🔴 STATE ĐIỀU KHIỂN BẬT/TẮT HỘP THOẠI THANH TOÁN
     const [isPaymentModalVisible, setPaymentModalVisible] = useState(false);
 
-    const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight : 0;
+  
+    const [isStatsModalVisible, setStatsModalVisible] = useState(false);
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [stats, setStats] = useState({ jobs: 0, views: 0, candidates: 0 });
 
-    
+    const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight : 0;
 
     const checkUnreadNotifications = async () => {
         try {
@@ -127,10 +128,10 @@ const EmployerProfile = ({ navigation }) => {
 
             const response = await axios.patch(`${HOST}/api/users/current-user/`, formData, config);
             setUser(response.data); 
-            Alert.alert("Thành công", "Đã cập nhật logo công ty.");
+            Alert.alert("Thành công", "Đã cập nhật avatar thành công.");
 
         } catch (error) {
-            console.error("Lỗi upload logo:", error.response?.data || error.message);
+            console.error("Lỗi upload avatar:", error.response?.data || error.message);
             Alert.alert("Lỗi", "Không thể cập nhật ảnh lúc này.");
         } finally {
             setUploading(false);
@@ -152,13 +153,11 @@ const EmployerProfile = ({ navigation }) => {
         ]);
     };
 
-    // 🔴 SỬA HÀM NÀY ĐỂ BẬT MODAL THAY VÌ DÙNG ALERT
     const handleUpgradeVIP = async () => {
         if (user?.is_vip) {
             Alert.alert("Thông báo", "Tài khoản của bạn đã là VIP rồi!");
             return;
         }
-        // Hiển thị giao diện Modal đẹp
         setPaymentModalVisible(true);
     };
 
@@ -246,6 +245,50 @@ const EmployerProfile = ({ navigation }) => {
         else if (url.includes('vicareer.app/payment-cancel')) {
             setPaymentUrl(null);
             Alert.alert("Đã hủy", "Bạn đã hủy quá trình thanh toán.");
+        }
+    };
+
+    
+    const handleOpenStats = async () => {
+        setStatsModalVisible(true);
+        setLoadingStats(true);
+        try {
+            const token = await AsyncStorage.getItem('access_token');
+            const userId = await AsyncStorage.getItem('current_user_id');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            const [jobsRes, appsRes] = await Promise.all([
+                axios.get(`${HOST}/api/jobs/`, config),
+                axios.get(`${HOST}/api/applications/`, config)
+            ]);
+
+            const allJobs = jobsRes.data.results || jobsRes.data;
+            const allApps = appsRes.data.results || appsRes.data;
+
+          
+            const myJobs = allJobs.filter(j => 
+                String(j.employer) === String(userId) || 
+                String(j.employer?.id) === String(userId) || 
+                String(j.employer_id) === String(userId)
+            );
+            
+            const totalJobs = myJobs.length;
+            const totalViews = myJobs.reduce((sum, job) => sum + (job.views_count || 0), 0);
+            
+          
+            const myCandidates = allApps.filter(app => {
+                const jobEmployerId = app.job?.employer?.id || app.job?.employer || app.job?.employer_id;
+                return String(jobEmployerId) === String(userId);
+            });
+            const totalCandidates = myCandidates.length;
+
+            setStats({ jobs: totalJobs, views: totalViews, candidates: totalCandidates });
+
+        } catch (error) {
+            console.error("Lỗi lấy dữ liệu thống kê:", error);
+            Alert.alert("Lỗi", "Không thể lấy dữ liệu thống kê lúc này.");
+        } finally {
+            setLoadingStats(false);
         }
     };
 
@@ -353,7 +396,7 @@ const EmployerProfile = ({ navigation }) => {
                                 {isPaymentLoading ? <ActivityIndicator size="small" color="#eab308" /> : <MaterialIcons name="stars" size={24} color="#eab308" />}
                             </View>
                             <Text className="flex-1 ml-4 text-yellow-600 font-bold text-base">Nâng cấp tài khoản VIP</Text>
-                            <Text className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg overflow-hidden mr-2">10$</Text>
+                            <Text className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg overflow-hidden mr-2">HOT</Text>
                             <MaterialIcons name="chevron-right" size={24} color="#ccc" />
                         </TouchableOpacity>
                     )}
@@ -367,6 +410,19 @@ const EmployerProfile = ({ navigation }) => {
                             <MaterialIcons name="history" size={24} color="#162E93" />
                         </View>
                         <Text className="flex-1 ml-4 text-gray-700 font-semibold text-base">Lịch sử giao dịch</Text>
+                        <MaterialIcons name="chevron-right" size={24} color="#ccc" />
+                    </TouchableOpacity>
+
+                    {/* 🔴 THÊM NÚT XEM THỐNG KÊ */}
+                    <Divider />
+                    <TouchableOpacity 
+                        onPress={handleOpenStats} 
+                        className="flex-row items-center py-2"
+                    >
+                        <View className="p-2 bg-purple-50 rounded-full">
+                            <MaterialIcons name="bar-chart" size={24} color="#8b5cf6" />
+                        </View>
+                        <Text className="flex-1 ml-4 text-gray-700 font-semibold text-base">Thống kê tuyển dụng</Text>
                         <MaterialIcons name="chevron-right" size={24} color="#ccc" />
                     </TouchableOpacity>
                 </View>
@@ -387,7 +443,7 @@ const EmployerProfile = ({ navigation }) => {
                 </View>
             </ScrollView>
 
-            {/* 🔴 HỘP THOẠI THANH TOÁN (MODAL) VỚI TAILWIND */}
+            {/* MODAL CHỌN CỔNG THANH TOÁN */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -399,7 +455,6 @@ const EmployerProfile = ({ navigation }) => {
                         <Text className="text-2xl font-bold text-gray-800 mb-2">Nâng Cấp VIP</Text>
                         <Text className="text-sm text-gray-500 mb-6 text-center">Vui lòng chọn cổng thanh toán an toàn</Text>
 
-                        {/* Nút MoMo (Hồng) */}
                         <TouchableOpacity 
                             className="w-full py-3.5 rounded-xl items-center mb-3 bg-[#AE2070] flex-row justify-center"
                             onPress={() => {
@@ -410,7 +465,6 @@ const EmployerProfile = ({ navigation }) => {
                             <Text className="text-white text-base font-bold">Thanh toán qua MoMo</Text>
                         </TouchableOpacity>
 
-                        {/* Nút PayPal (Xanh dương) */}
                         <TouchableOpacity 
                             className="w-full py-3.5 rounded-xl items-center mb-3 bg-[#003087] flex-row justify-center"
                             onPress={() => {
@@ -421,7 +475,6 @@ const EmployerProfile = ({ navigation }) => {
                             <Text className="text-white text-base font-bold">Thanh toán qua PayPal</Text>
                         </TouchableOpacity>
 
-                        {/* Nút Hủy */}
                         <TouchableOpacity 
                             className="mt-2 py-2 px-5"
                             onPress={() => setPaymentModalVisible(false)}
@@ -432,7 +485,67 @@ const EmployerProfile = ({ navigation }) => {
                 </View>
             </Modal>
 
-            {/* Bottom Tab Bar */}
+            {/* 🔴 MODAL THỐNG KÊ TUYỂN DỤNG */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isStatsModalVisible}
+                onRequestClose={() => setStatsModalVisible(false)}
+            >
+                <View className="flex-1 bg-black/50 justify-center items-center">
+                    <View className="w-[85%] bg-white rounded-3xl p-6 shadow-xl">
+                        <View className="flex-row justify-between items-center mb-6 pb-2 border-b border-gray-100">
+                            <View>
+                                <Text className="text-xl font-bold text-[#162E93]">Thống kê tuyển dụng</Text>
+                                <Text className="text-xs text-gray-500 mt-1">Tổng quan các hoạt động của bạn</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setStatsModalVisible(false)} className="bg-gray-100 p-2 rounded-full">
+                                <MaterialIcons name="close" size={20} color="#4b5563" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {loadingStats ? (
+                            <View className="py-10 items-center justify-center">
+                                <ActivityIndicator size="large" color="#162E93" />
+                                <Text className="text-gray-500 mt-4 font-medium">Đang tải dữ liệu...</Text>
+                            </View>
+                        ) : (
+                            <View>
+                                <View className="flex-row items-center bg-blue-50 p-4 rounded-2xl mb-4 border border-blue-100 shadow-sm">
+                                    <View className="bg-blue-100 p-3 rounded-full mr-4">
+                                        <MaterialIcons name="work" size={28} color="#162E93" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Tổng số bài đăng</Text>
+                                        <Text className="text-3xl font-black text-[#162E93]">{stats.jobs}</Text>
+                                    </View>
+                                </View>
+
+                                <View className="flex-row items-center bg-purple-50 p-4 rounded-2xl mb-4 border border-purple-100 shadow-sm">
+                                    <View className="bg-purple-100 p-3 rounded-full mr-4">
+                                        <MaterialIcons name="visibility" size={28} color="#8b5cf6" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Tổng lượt xem bài</Text>
+                                        <Text className="text-3xl font-black text-purple-600">{stats.views}</Text>
+                                    </View>
+                                </View>
+
+                                <View className="flex-row items-center bg-green-50 p-4 rounded-2xl border border-green-100 shadow-sm">
+                                    <View className="bg-green-100 p-3 rounded-full mr-4">
+                                        <MaterialIcons name="people-alt" size={28} color="#10b981" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Số lượng ứng viên</Text>
+                                        <Text className="text-3xl font-black text-green-600">{stats.candidates}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
             <View className="flex-row bg-white py-3 border-t border-gray-100 justify-around items-center absolute bottom-0 w-full pb-6 shadow-2xl">
                 <TouchableOpacity onPress={() => navigation.navigate('EmployerHome')} className="items-center">
                     <MaterialIcons name="dashboard" size={26} color="#9ca3af" />

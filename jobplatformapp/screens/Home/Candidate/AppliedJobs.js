@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons'; 
 import { useFocusEffect } from '@react-navigation/native';
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const AppliedJobs = ({ navigation }) => {
     const [applications, setApplications] = useState([]);
@@ -39,7 +39,7 @@ const AppliedJobs = ({ navigation }) => {
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
             
             const unreadExists = appsData.some(item => {
-                // 🔴 ĐÃ ĐỒNG BỘ: Sử dụng trạng thái làm khóa để không bị báo đỏ sai
+                
                 const currentKey = `${item.id}_status_${item.status}`;
                 return !readIds.includes(currentKey);
             });

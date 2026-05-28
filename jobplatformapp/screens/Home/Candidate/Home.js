@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useFocusEffect } from '@react-navigation/native'; 
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const parseSalaryToMillions = (salaryStr) => {
     if (!salaryStr) return 0;
@@ -153,7 +153,7 @@ const Home = ({ navigation }) => {
         fetchData();
     }, []);
 
-    // 1. Lọc dữ liệu thô theo các tiêu chí tìm kiếm/bộ lọc trước
+    
     const allFilteredJobs = jobs
         .filter(job => {
             const matchCategory = !activeCategoryId || job.category === activeCategoryId;
@@ -185,7 +185,7 @@ const Home = ({ navigation }) => {
             return 0;
         });
 
-    // 2. CHIA ĐÔI DỮ LIỆU THÀNH 2 MẢNG RIÊNG BIỆT (VIP VÀ THƯỜNG)
+    
     const featuredJobs = allFilteredJobs.filter(job => job.is_featured);
     const regularJobs = allFilteredJobs.filter(job => !job.is_featured);
 
@@ -226,7 +226,7 @@ const Home = ({ navigation }) => {
         await AsyncStorage.setItem(`likedJobs_${userId}`, JSON.stringify(newLikes)); 
     };
 
-    // Render item dành riêng cho việc làm cuộn ngang VIP ở phía trên
+   
     const renderFeaturedJobItem = ({ item }) => {
         const shortLocation = item.location ? item.location.split(',').pop().trim() : "Chưa cập nhật";
         const isLiked = likedJobs.includes(item.id);
@@ -277,7 +277,6 @@ const Home = ({ navigation }) => {
         );
     };
 
-    // Render item dành cho danh sách việc làm Bình thường ở phía dưới
     const renderJobItem = ({ item }) => {
         const shortLocation = item.location ? item.location.split(',').pop().trim() : "Chưa cập nhật";
         const isLiked = likedJobs.includes(item.id);
@@ -331,10 +330,9 @@ const Home = ({ navigation }) => {
         );
     };
 
-    // Gom toàn bộ Categories và Việc làm VIP vào Header Component
+   
     const renderListHeader = () => (
         <View>
-            {/* Thanh danh mục ngành nghề */}
             <View className="py-4">
                 <FlatList 
                     horizontal
@@ -353,7 +351,7 @@ const Home = ({ navigation }) => {
                 />
             </View>
 
-            {/* PHẦN 1: VIỆC LÀM TỐT NHẤT (Chỉ hiện khi có tin VIP) */}
+           
             {featuredJobs.length > 0 && (
                 <View className="mb-6">
                     <View className="flex-row items-center justify-between px-4 mb-3">
@@ -374,7 +372,7 @@ const Home = ({ navigation }) => {
                 </View>
             )}
 
-            {/* PHẦN 2: TIÊU ĐỀ CHO PHẦN DƯỚI (Đặt tên là: Việc làm mới nhất) */}
+            
             <View className="flex-row items-center px-4 mb-4 mt-2">
                 <MaterialIcons name="grid-view" size={20} color="#162E93" />
                 <Text className="text-xl font-bold text-gray-900 ml-1.5">
@@ -388,7 +386,7 @@ const Home = ({ navigation }) => {
         <View className="flex-1 bg-gray-50 ">
             <StatusBar barStyle="light-content" backgroundColor="#162E93" translucent={true} />
             
-            {/* Sticky Search Header */}
+           
             <View 
                 style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 12 }} 
                 className="pb-5 px-4 shadow-lg z-10"
@@ -410,7 +408,7 @@ const Home = ({ navigation }) => {
             {loading ? (
                 <ActivityIndicator size="large" color="#162E93" className="mt-10"  />
             ) : (
-                /* FlatList chính của cả màn hình (Hiển thị các công việc bình thường) */
+                
                 <FlatList 
                     data={regularJobs}
                     keyExtractor={(item) => item.id.toString()}
@@ -426,7 +424,7 @@ const Home = ({ navigation }) => {
                 />
             )}
 
-            {/* Bộ lọc Modal */}
+           
             <Modal animationType="slide" transparent={true} visible={isFilterVisible} onRequestClose={() => setFilterVisible(false)}>
                 <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} activeOpacity={1} onPress={() => setFilterVisible(false)} />
                 <View className="bg-white rounded-t-3xl p-6 absolute bottom-0 w-full shadow-2xl" style={{ maxHeight: '85%' }}>
@@ -492,7 +490,7 @@ const Home = ({ navigation }) => {
                 </View>
             </Modal>
 
-            {/* Bottom Tab Bar */}
+            
             <View className="flex-row bg-white py-3 border-t border-gray-100 justify-around items-center absolute bottom-0 w-full pb-6 shadow-2xl">
                 <TouchableOpacity className="items-center">
                     <MaterialIcons name="home" size={28} color="#162E93" />

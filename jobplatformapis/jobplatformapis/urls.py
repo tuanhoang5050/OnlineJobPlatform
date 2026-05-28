@@ -24,11 +24,13 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from dashboard.views import system_stats_view
+
 schema_view = get_schema_view(
    openapi.Info(
-      title="Sàn Việc Làm API",
+      title="Sàn Việc làm API",
       default_version='v1',
-      description="Sàn Việc Làm (Job Platform)",
+      description="Sàn Việc làm (Job Platform)",
       contact=openapi.Contact(email="admin@sanvieclam.com"),
    ),
    public=True,
@@ -36,10 +38,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('admin/system-stats/', system_stats_view, name='system_stats'),
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
 
-    # Dòng cấu hình API mới:
+
     path('api/', include('jobs.urls')),
     path('api/', include('users.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

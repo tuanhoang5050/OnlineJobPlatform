@@ -20,13 +20,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as DocumentPicker from 'expo-document-picker'; 
 import { useFocusEffect } from '@react-navigation/native';
-import { HOST } from '../../configs/Apis'; 
+import { HOST } from '../../../configs/Apis'; 
 
 const tagsStyles = { 
     body: { color: '#4b5563', fontSize: 16, lineHeight: 24 }, 
     p: { marginVertical: 4 },
     li: { marginVertical: 2 }
 };
+
+const baseHTMLStyle = { flexWrap: 'wrap' };
 
 const formatDeadline = (deadlineString) => {
     if (!deadlineString) return "Chưa cập nhật";
@@ -43,6 +45,7 @@ const getCityFromAddress = (addressString) => {
 const parseSalaryToMillions = (salaryStr) => {
     if (!salaryStr) return 0;
     const str = salaryStr.toLowerCase().trim();
+
     if (str.includes('thỏa thuận') || str.includes('thoa thuan')) return -1; 
     if (str.includes('$')) {
         const numbers = str.match(/\d+/g);
@@ -83,6 +86,7 @@ const JobDetail = ({ route, navigation }) => {
     const [email, setEmail] = useState('');
 
     const [isCompareModalVisible, setCompareModalVisible] = useState(false);
+    const [viewsCount, setViewsCount] = useState(job?.views_count || 0);
 
     useFocusEffect(
         useCallback(() => {
@@ -90,44 +94,63 @@ const JobDetail = ({ route, navigation }) => {
             const fetchAllData = async () => {
                 try {
                     const token = await AsyncStorage.getItem('access_token');
-                    if (!token) return;
+                    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-                    const config = { headers: { Authorization: `Bearer ${token}` } };
-                    
-                    const userId = await AsyncStorage.getItem('current_user_id');
-                    
-                    if (userId) {
-                        const savedLikesStr = await AsyncStorage.getItem(`likedJobs_${userId}`);
-                        if (savedLikesStr) {
-                            setLikedJobs(JSON.parse(savedLikesStr));
-                        } else {
-                            setLikedJobs([]);
+                   
+                    try {
+                        const viewRes = await axios.post(`${HOST}/api/jobs/${currentJobId}/increment-view/`, {}, config);
+                        if (isActive && viewRes.data?.status === 'success') {
+                            setViewsCount(viewRes.data.current_views);
                         }
+                    } catch (err) {
+                        console.log("Lỗi tăng view:", err.message);
                     }
-                    
-                    const [userRes, jobsRes, appRes] = await Promise.all([
-                        axios.get(`${HOST}/api/users/current-user/`, config),
-                        axios.get(`${HOST}/api/jobs/`, config),
-                        axios.get(`${HOST}/api/applications/?t=${new Date().getTime()}`, config)
-                    ]);
 
-                    if (isActive) {
-                        setFullName(`${userRes.data.first_name} ${userRes.data.last_name}`.trim() || userRes.data.username);
-                        setPhone(userRes.data.phone_number || '');
-                        setEmail(userRes.data.email || '');
-
+                   
+                    try {
+                        const jobsRes = await axios.get(`${HOST}/api/jobs/`);
                         const allJobs = jobsRes.data.results ? jobsRes.data.results : jobsRes.data;
-                        setSimilarJobs(allJobs.filter(item => item.category === job?.category && item.id !== currentJobId));
-                        setLoadingSimilar(false);
+                        if (isActive) {
+                            setSimilarJobs(allJobs.filter(item => item.category === job?.category && item.id !== currentJobId));
+                            setLoadingSimilar(false);
+                        }
+                    } catch (err) {
+                        if (isActive) setLoadingSimilar(false);
+                    }
 
-                        const appliedList = appRes.data.results ? appRes.data.results : appRes.data;
-                        const jobApps = appliedList.filter(app => String(app.job?.id || app.job) === String(currentJobId));
+                    
+                    if (token) {
+                        const userId = await AsyncStorage.getItem('current_user_id');
+                        if (userId) {
+                            const savedLikesStr = await AsyncStorage.getItem(`likedJobs_${userId}`);
+                            if (isActive && savedLikesStr) {
+                                setLikedJobs(JSON.parse(savedLikesStr));
+                            }
+                        }
                         
-                        if (jobApps.length > 0) {
-                            jobApps.sort((a, b) => Number(b.id) - Number(a.id));
-                            setAppStatus(String(jobApps[0].status) === '3' ? 'REJECTED' : 'ACTIVE');
-                        } else {
-                            setAppStatus(null);
+                        try {
+                            const [userRes, appRes] = await Promise.all([
+                                axios.get(`${HOST}/api/users/current-user/`, config),
+                                axios.get(`${HOST}/api/applications/?t=${new Date().getTime()}`, config)
+                            ]);
+
+                            if (isActive) {
+                                setFullName(`${userRes.data.first_name} ${userRes.data.last_name}`.trim() || userRes.data.username);
+                                setPhone(userRes.data.phone_number || '');
+                                setEmail(userRes.data.email || '');
+
+                                const appliedList = appRes.data.results ? appRes.data.results : appRes.data;
+                                const jobApps = appliedList.filter(app => String(app.job?.id || app.job) === String(currentJobId));
+                                
+                                if (jobApps.length > 0) {
+                                    jobApps.sort((a, b) => Number(b.id) - Number(a.id));
+                                    setAppStatus(String(jobApps[0].status) === '3' ? 'REJECTED' : 'ACTIVE');
+                                } else {
+                                    setAppStatus(null);
+                                }
+                            }
+                        } catch (err) {
+                            console.log("Lỗi lấy dữ liệu cá nhân:", err.message);
                         }
                     }
                 } catch (error) {
@@ -200,6 +223,14 @@ const JobDetail = ({ route, navigation }) => {
 
     const submitApplication = async () => {
         if (!cvFile || !phone) return Alert.alert("Thiếu thông tin", "Vui lòng chọn CV và nhập số điện thoại.");
+        
+      
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(phone.trim())) {
+            Alert.alert("Số điện thoại không hợp lệ", "Vui lòng nhập số điện thoại hợp lệ!");
+            return;
+        }
+
         setIsApplying(true);
         try {
             const formData = new FormData();
@@ -265,13 +296,15 @@ const JobDetail = ({ route, navigation }) => {
                         </View>
                     </View>
                     
-                    <View className="flex-row items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <View className="flex-row items-center bg-gray-50 p-3 mb-3 rounded-xl border border-gray-100">
                         <View className="bg-red-100 p-2 rounded-xl mr-3"><MaterialIcons name="access-alarm" size={24} color="#ef4444" /></View>
                         <View className="flex-1">
                             <Text className="text-gray-500 text-xs font-medium">Hạn nộp hồ sơ</Text>
                             <Text className="text-gray-800 font-bold">{formatDeadline(job?.deadline)}</Text>
                         </View>
                     </View>
+
+                   
                 </View>
 
                 <View className="bg-white p-6 shadow-sm border border-blue-500 rounded-2xl mb-8">
@@ -280,7 +313,7 @@ const JobDetail = ({ route, navigation }) => {
                         contentWidth={width - 48} 
                         source={htmlSource} 
                         tagsStyles={tagsStyles} 
-                        baseStyle={{ flexWrap: 'wrap' }}
+                        baseStyle={baseHTMLStyle} 
                     />
                 </View>
 
@@ -294,8 +327,6 @@ const JobDetail = ({ route, navigation }) => {
                     similarJobs.map((item) => {
                         const isItemLiked = likedJobs.includes(item.id);
                         
-                        // 🌟 BƯỚC 1: Xác định bài post có "nổi bật" hay không dựa vào trường dữ liệu từ API
-                        // (Bạn hãy chỉnh lại 'item.is_featured' hoặc 'item.featured' cho đúng với Back-end của bạn nhé)
                         const isFeatured = item.is_featured ;
 
                         const companyName = item.company_name || item.employer?.company_name || "Công ty tuyển dụng";
@@ -315,14 +346,14 @@ const JobDetail = ({ route, navigation }) => {
                                     isLikedInitially: isItemLiked,
                                     onLikeChange: syncLikeState
                                 })}
-                                // 🌟 BƯỚC 2: Định dạng border và background nổi bật nếu đúng điều kiện
+                                
                                 className={`p-5 rounded-xl mb-4 shadow-sm border ${
                                     isFeatured 
                                         ? 'bg-amber-50/50 border-amber-400 shadow-md' 
                                         : 'bg-white border-blue-200'
                                 }`}
                             >
-                                {/* 🌟 BƯỚC 3: Thêm chiếc Badge "Nổi bật" nhỏ gọn phía trên cùng của Card */}
+                               
                                 {isFeatured && (
                                     <View className="flex-row items-center bg-amber-100 border border-amber-300 self-start px-2 py-0.5 rounded-md mb-3">
                                         <MaterialIcons name="star" size={12} color="#d97706" />
@@ -373,7 +404,7 @@ const JobDetail = ({ route, navigation }) => {
                 )}
             </ScrollView>
 
-            {/* Các thành phần Bottom Bar & Modals giữ nguyên bên dưới */}
+            
             <View className="absolute bottom-0 w-full bg-white px-5 py-3 border-t border-gray-100 shadow-2xl flex-row justify-between items-center pb-4">
                  <TouchableOpacity onPress={() => toggleLike(currentJobId)} className="p-2 bg-white rounded-3xl mr-4 border border-blue-700">
                     <MaterialIcons name={isLiked ? "favorite" : "favorite-border"} size={28} color={isLiked ? "#ef4444" : "#002b75"} />

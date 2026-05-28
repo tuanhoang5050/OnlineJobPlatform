@@ -13,9 +13,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons'; 
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
-// Hàm helper để sinh nội dung thông báo dựa trên trạng thái (status)
+
 const getNotificationDetail = (app) => {
     const jobTitle = app.job?.title || 'một vị trí';
     const companyName = app.job?.employer_name || app.employer?.company_name || 'công ty';
@@ -96,7 +96,7 @@ const Notifications = ({ navigation }) => {
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
 
             const unreadExists = sortedApps.some(item => {
-                // 🔴 ĐÃ SỬA LỖI HỔNG: Chỉ báo chấm đỏ khi 'status' thay đổi
+                
                 const currentKey = `${item.id}_status_${item.status}`;
                 return !readIds.includes(currentKey);
             });
@@ -127,7 +127,7 @@ const Notifications = ({ navigation }) => {
             const userId = await AsyncStorage.getItem('current_user_id');
             if (!userId) return;
 
-            // 🔴 ĐÃ SỬA LỖI HỔNG: Lưu theo định dạng status
+            
             const allIds = notifications.map(item => `${item.id}_status_${item.status}`);
             await AsyncStorage.setItem(`read_notifications_${userId}`, JSON.stringify(allIds));
 

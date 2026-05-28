@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useFocusEffect } from '@react-navigation/native';
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const SavedJobs = ({ navigation }) => {
     const [jobs, setJobs] = useState([]);
@@ -38,7 +38,7 @@ const SavedJobs = ({ navigation }) => {
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
             
             const unreadExists = appsData.some(item => {
-                // 🔴 ĐÃ ĐỒNG BỘ THEO STATUS
+               
                 const currentKey = `${item.id}_status_${item.status}`;
                 return !readIds.includes(currentKey);
             });

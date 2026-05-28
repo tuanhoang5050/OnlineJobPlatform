@@ -63,7 +63,7 @@ const Register = ({ navigation }) => {
                 </View>
                 <View className="flex-row justify-center">
                     <Image 
-                        source={require('../../assets/images/login11.png')} 
+                        source={require('../../../assets/images/login11.png')} 
                         style={{ width: 150, height: 150 }} 
                         resizeMode="contain"
                     />

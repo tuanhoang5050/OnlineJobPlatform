@@ -32,7 +32,7 @@ PAYPAL_CLIENT_ID = 'AdBrJ3TR3wSR8DLM8MKbCGoGURUj4CRNwQdGpBvfkR8AetQS9givn4nGjEFF
 PAYPAL_SECRET = 'EO1SW-JXTxnO6_7VOgBOhIK1ZO_WYKYkT-OfBWG-5NtqX6fX2HBcx1UlnOo2WHD3rfo_hwS1QWLiZ3sm'
 
 paypalrestsdk.configure({
-  "mode": "sandbox", # Đổi thành "live" khi triển khai thật
+  "mode": "sandbox", #
   "client_id": PAYPAL_CLIENT_ID,
   "client_secret": PAYPAL_SECRET
 })
@@ -40,7 +40,6 @@ paypalrestsdk.configure({
 PAYPAL_RETURN_URL = 'https://vicareer.app/payment-success'
 PAYPAL_CANCEL_URL = 'https://vicareer.app/payment-cancel'
 
-# Cấu hình MoMo Sandbox (Dùng chung cho Developer)
 MOMO_PARTNER_CODE = "MOMOBKUN20180529"
 MOMO_ACCESS_KEY = "klm05TvNBzhg7h7j"
 MOMO_SECRET_KEY = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa"
@@ -68,6 +67,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'oauth2_provider',
     'drf_yasg',
+    'dashboard.apps.DashboardConfig'
 ]
 
 MIDDLEWARE = [

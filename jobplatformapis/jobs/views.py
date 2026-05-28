@@ -1,21 +1,20 @@
+from django.db.models import F
 from rest_framework.response import Response
 from rest_framework import viewsets, filters, permissions, status
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied  # 🔴 Thêm import này
+from rest_framework.exceptions import PermissionDenied
 from applications.serializers import ApplicationSerializer
 from .models import Category, JobPost
 from .serializers import CategorySerializer, JobPostSerializer
 from applications.models import Application
-
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.employer == request.user
-
 
 class JobPostFilter(django_filters.FilterSet):
     ids = django_filters.BaseInFilter(field_name='id', lookup_expr='in')
@@ -24,11 +23,9 @@ class JobPostFilter(django_filters.FilterSet):
         model = JobPost
         fields = ['category']
 
-
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.filter(active=True)
     serializer_class = CategorySerializer
-
 
 class JobPostViewSet(viewsets.ModelViewSet):
     queryset = JobPost.objects.filter(active=True).order_by('-created_date')
@@ -89,3 +86,17 @@ class JobPostViewSet(viewsets.ModelViewSet):
         hoso_list = job.applications.all()
         serializer = ApplicationSerializer(hoso_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='increment-view',permission_classes=[permissions.AllowAny])
+    def increment_view(self, request, pk=None):
+        try:
+            job = self.get_object()
+            job.views_count = F('views_count') + 1
+            job.save(update_fields=['views_count'])
+            job.refresh_from_db()
+            return Response({
+                'status': 'success',
+                'current_views': job.views_count
+            }, status=status.HTTP_200_OK)
+        except JobPost.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)

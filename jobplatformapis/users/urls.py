@@ -14,6 +14,6 @@ urlpatterns = [
     path('users/execute-momo/', views.execute_momo_payment, name='execute_momo'),
     path('', include(router.urls)),
 
-    # 🔴 ĐĂNG KÝ 2 API PAYPAL MỚI
+
 
 ]

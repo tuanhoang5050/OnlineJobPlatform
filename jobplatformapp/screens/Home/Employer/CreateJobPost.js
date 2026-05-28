@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const CreateJobPost = ({ navigation }) => {
     const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight : 0;
@@ -22,7 +22,7 @@ const CreateJobPost = ({ navigation }) => {
     const [deadlineText, setDeadlineText] = useState(''); 
     const [loading, setLoading] = useState(false);
 
-    // 🔴 State kiểm tra quyền đăng tin
+    
     const [isVerified, setIsVerified] = useState(false);
 
     useEffect(() => {
@@ -127,7 +127,7 @@ const CreateJobPost = ({ navigation }) => {
                     <View className="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 flex-row items-center">
                         <MaterialIcons name="warning" size={24} color="#ef4444" />
                         <Text className="text-red-600 font-medium ml-2 flex-1">
-                            Tài khoản của bạn chưa được duyệt. Bạn có thể soạn tin trước nhưng không thể đăng.
+                            Tài khoản của bạn chưa được duyệt. Hiện tại bạn chưa thể đăng tin
                         </Text>
                     </View>
                 )}

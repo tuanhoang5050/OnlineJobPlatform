@@ -17,7 +17,7 @@ import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native'; 
 import * as ImagePicker from 'expo-image-picker';
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const Profile = ({ navigation }) => {
     const [user, setUser] = useState(null);
@@ -47,7 +47,7 @@ const Profile = ({ navigation }) => {
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
             
             const unreadExists = appsData.some(item => {
-                // 🔴 ĐÃ ĐỒNG BỘ THEO STATUS
+               
                 const currentKey = `${item.id}_status_${item.status}`;
                 return !readIds.includes(currentKey);
             });
@@ -154,7 +154,6 @@ const Profile = ({ navigation }) => {
         setInfoModalVisible(true);
     };
 
-    // Hàm xử lý mở file CV
     const handleOpenMyCV = async () => {
         const cvUrl = user?.cv_file; 
     

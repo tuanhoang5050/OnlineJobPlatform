@@ -45,22 +45,16 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API lấy lịch sử giao dịch của chính user đang đăng nhập
-    """
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Transaction.objects.filter(user=self.request.user).order_by('-created_date')
 
-# 🔴 1. API: TẠO GIAO DỊCH PAYPAL
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_paypal_payment(request):
-    """
-    Tạo một giao dịch với PayPal và trả về Link Thanh toán (Approval URL).
-    """
     vip_price = "10.00"
 
     payment = paypalrestsdk.Payment({
@@ -91,10 +85,8 @@ def create_paypal_payment(request):
     })
 
     if payment.create():
-        # Tìm link duyệt thanh toán (Approval URL) để gửi cho React Native mở WebView
         approval_url = next((link.href for link in payment.links if link.rel == "approval_url"), None)
 
-        # Lưu giao dịch vào DB với trạng thái 'CREATED'
         Transaction.objects.create(
             user=request.user,
             payment_id=payment.id,
@@ -107,13 +99,10 @@ def create_paypal_payment(request):
         return Response({"error": payment.error}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 🔴 2. API: XÁC NHẬN VÀ CẤP QUYỀN VIP
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def execute_paypal_payment(request):
-    """
-    Xác nhận thanh toán hoàn tất, cấp quyền VIP cho User và Nổi bật các Job.
-    """
     payment_id = request.data.get('paymentId')
     payer_id = request.data.get('PayerID')
 
@@ -123,7 +112,6 @@ def execute_paypal_payment(request):
     payment = paypalrestsdk.Payment.find(payment_id)
 
     if payment.execute({"payer_id": payer_id}):
-        # 1. Cập nhật giao dịch thành COMPLETED
         try:
             transaction = Transaction.objects.get(payment_id=payment_id)
             transaction.status = 'COMPLETED'
@@ -131,23 +119,23 @@ def execute_paypal_payment(request):
         except Transaction.DoesNotExist:
             pass
 
-        # 2. CẤP QUYỀN VIP CHO USER
+
         user = request.user
         user.is_vip = True
         user.save()
 
-        # 3. NÂNG CẤP TIN ĐĂNG HIỆN CÓ CỦA USER THÀNH TIN NỔI BẬT
+
         JobPost.objects.filter(employer=user).update(is_featured=True)
 
-        # 4. Tự động gửi một thông báo hệ thống cho User
+
         Notification.objects.create(
             user=user,
-            title="Thanh toán VIP thành công! 🌟",
-            body="Cảm ơn bạn đã đồng hành cùng ViCareer. Tài khoản của bạn đã được nâng cấp VIP và các tin tuyển dụng đang được ưu tiên hiển thị.",
+            title="Thanh toán thành công!",
+            body="Cảm ơn bạn đã đồng hành cùng ViCareer. Tài khoản của bạn đã được nâng cấp và các tin tuyển dụng đang được ưu tiên hiển thị.",
             type="SYSTEM_APPROVAL"
         )
 
-        return Response({"message": "Thanh toán thành công. Tài khoản đã được nâng cấp VIP!"},
+        return Response({"message": "Thanh toán thành công. Tài khoản đã được nâng cấp!"},
                         status=status.HTTP_200_OK)
     else:
         return Response({"error": payment.error}, status=status.HTTP_400_BAD_REQUEST)
@@ -156,17 +144,15 @@ def execute_paypal_payment(request):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_momo_payment(request):
-    """
-    API tạo link thanh toán MoMo Sandbox
-    """
-    amount = "250000"  # ~10 USD đổi sang VND vì MoMo Sandbox chạy tiền Việt
-    order_id = str(uuid.uuid4())  # Tạo mã đơn hàng duy nhất
+
+    amount = "250000"
+    order_id = str(uuid.uuid4())
     request_id = str(uuid.uuid4())
     order_info = "Nang cap tai khoan VIP ViCareer qua MoMo"
     request_type = "captureWallet"
-    extra_data = ""  # Có thể để trống
+    extra_data = ""
 
-    # 1. Tạo chuỗi raw định dạng theo yêu cầu cấu trúc của MoMo
+
     raw_signature = (
         f"accessKey={settings.MOMO_ACCESS_KEY}&amount={amount}&extraData={extra_data}"
         f"&ipnUrl={settings.MOMO_IPN_URL}&orderId={order_id}&orderInfo={order_info}"
@@ -174,14 +160,14 @@ def create_momo_payment(request):
         f"&requestId={request_id}&requestType={request_type}"
     )
 
-    # 2. Ký mã HMAC-SHA256
+
     signature = hmac.new(
         settings.MOMO_SECRET_KEY.encode('utf-8'),
         raw_signature.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
 
-    # 3. Chuẩn bị dữ liệu gửi lên MoMo
+
     payload = {
         "partnerCode": settings.MOMO_PARTNER_CODE,
         "partnerName": "ViCareer",
@@ -208,7 +194,7 @@ def create_momo_payment(request):
         print(json.dumps(res_data, indent=4, ensure_ascii=False))
         print("=========================")
 
-        # Nếu MoMo tạo link thành công (resultCode = 0)
+
         if res_data.get("resultCode") == 0:
             return Response({"payUrl": res_data.get("payUrl")}, status=status.HTTP_200_OK)
         else:
@@ -221,35 +207,33 @@ def create_momo_payment(request):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def execute_momo_payment(request):
-    """
-    API xác nhận MoMo thành công và kích hoạt VIP (Chỉ lưu khi thành công)
-    """
+
     result_code = request.data.get('resultCode')
     amount = request.data.get('amount', '250000')
     order_id = request.data.get('orderId')
 
-    # resultCode = 0 nghĩa là người dùng đã trừ tiền thành công trên MoMo
+
     if str(result_code) == "0":
-        # 1. Tiến hành CẤP QUYỀN VIP CHO USER
+
         user = request.user
         user.is_vip = True
         user.save()
 
-        # 2. NÂNG CẤP TIN ĐĂNG THÀNH TIN NỔI BẬT
+
         JobPost.objects.filter(employer=user).update(is_featured=True)
 
-        # 3. TẠO LỊCH SỬ GIAO DỊCH THÀNH CÔNG (Đúng yêu cầu của bạn)
+
         Transaction.objects.create(
             user=user,
-            payment_id=f"MOMO_{order_id[:20]}",  # Gắn tiền tố MoMo để phân biệt với PayPal
-            amount=f"{int(amount) / 25000:,.1f}",  # Quy đổi tạm về hiển thị USD hoặc sửa thành chuỗi tùy bạn
+            payment_id=f"MOMO_{order_id[:20]}",
+            amount=f"{int(amount) / 25000:,.1f}",
             status='COMPLETED'
         )
 
-        # 4. Gửi thông báo hệ thống
+
         Notification.objects.create(
             user=user,
-            title="Nâng cấp VIP qua MoMo thành công! 🌟",
+            title="Nâng cấp VIP qua MoMo thành công!",
             body="Cảm ơn bạn! Tài khoản của bạn đã nâng cấp VIP thành công bằng ví MoMo.",
             type="SYSTEM_APPROVAL"
         )

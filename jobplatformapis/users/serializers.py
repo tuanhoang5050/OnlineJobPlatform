@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Notification, Transaction  # 🔴 Nhớ import Notification
+from .models import User, Notification, Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-# 🔴 THÊM SERIALIZER CHO THÔNG BÁO
+
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification

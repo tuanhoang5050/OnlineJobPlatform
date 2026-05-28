@@ -21,7 +21,7 @@ const TransactionHistory = ({ navigation }) => {
         
         const data = response.data.results ? response.data.results : response.data;
         
-        // 🔴 LỌC TẠI ĐÂY: Chỉ lấy những giao dịch có status là 'COMPLETED'
+        
         const successTransactions = data.filter(item => item.status === 'COMPLETED');
         
         setTransactions(successTransactions);
@@ -36,14 +36,14 @@ const TransactionHistory = ({ navigation }) => {
         fetchTransactionHistory();
     }, []);
 
-    // Định dạng ngày tháng từ ISO String (Django) sang ngày Việt Nam
+    
     const formatDate = (dateString) => {
         if (!dateString) return "Không rõ thời gian";
         const d = new Date(dateString);
         return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
     };
 
-    // Ánh xạ trạng thái tương ứng với định nghĩa ở Backend (CREATED, COMPLETED, FAILED)
+    
     const getStatusDetails = (status) => {
         switch (status) {
             case 'COMPLETED': 
@@ -80,7 +80,7 @@ const TransactionHistory = ({ navigation }) => {
                 </View>
 
                 <View className="items-end justify-center">
-                    {/* Hiển thị số tiền kèm ký hiệu USD chuẩn từ API Paypal */}
+                   
                     <Text className="font-bold text-xl text-gray-900">
                         ${item.amount}
                     </Text>
@@ -98,7 +98,7 @@ const TransactionHistory = ({ navigation }) => {
         <View className="flex-1 bg-gray-50">
             <StatusBar barStyle="light-content" backgroundColor="#162E93" translucent={true} />
             
-            {/* Custom Header đồng bộ */}
+           
             <View style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 16 }} className="pb-6 px-4 shadow-lg flex-row items-center">
                 <TouchableOpacity 
                     onPress={() => navigation.goBack()} 

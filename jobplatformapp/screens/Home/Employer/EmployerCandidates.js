@@ -16,12 +16,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const EmployerCandidates = ({ navigation }) => {
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [hasUnread, setHasUnread] = useState(false); // 🔴 State quản lý chấm đỏ
+    const [hasUnread, setHasUnread] = useState(false); 
 
     const [isCoverLetterVisible, setCoverLetterVisible] = useState(false);
     const [currentCoverLetter, setCurrentCoverLetter] = useState('');
@@ -53,7 +53,7 @@ const EmployerCandidates = ({ navigation }) => {
         }
     };
 
-    // 🔴 HÀM KIỂM TRA CHẤM ĐỎ ĐÃ ĐƯỢC ĐỒNG BỘ HOÀN TOÀN VỚI MÀN HÌNH THÔNG BÁO
+    
     const checkUnreadNotifications = async () => {
         try {
             const token = await AsyncStorage.getItem('access_token');
@@ -62,39 +62,39 @@ const EmployerCandidates = ({ navigation }) => {
 
             const config = { headers: { Authorization: `Bearer ${token}` } };
             
-            // 1. Gọi song song 2 API y hệt như bên trang Notifications
+            
             const [appRes, sysRes] = await Promise.all([
                 axios.get(`${HOST}/api/applications/`, config),
                 axios.get(`${HOST}/api/notifications/`, config)
             ]);
             
-            // 2. Lọc danh sách Đơn ứng tuyển của HR này
+            
             const appsData = appRes.data.results || appRes.data;
             const myCandidates = appsData.filter(app => {
                 const jobEmployerId = app.job?.employer?.id || app.job?.employer || app.job?.employer_id;
                 return String(jobEmployerId) === String(userId);
             });
 
-            // 3. Lấy danh sách Thông báo hệ thống
+            
             const sysData = sysRes.data.results || sysRes.data;
 
-            // 4. Lấy danh sách ID đã đọc từ AsyncStorage
+            
             const savedReadIds = await AsyncStorage.getItem(`read_notifications_employer_${userId}`);
             const readIds = savedReadIds ? JSON.parse(savedReadIds) : [];
             
-            // 5. Kiểm tra xem có Đơn ứng tuyển (APP) nào chưa đọc không
+           
             const unreadAppExists = myCandidates.some(item => {
                 const currentKey = `APP_${item.id}_${item.updated_date || item.created_date}`;
                 return !readIds.includes(currentKey);
             });
 
-            // 6. Kiểm tra xem có Thông báo hệ thống (SYS) nào chưa đọc không
+            
             const unreadSysExists = sysData.some(item => {
                 const currentKey = `SYS_${item.id}_${item.updated_date || item.created_date}`;
                 return !readIds.includes(currentKey);
             });
 
-            // Nếu 1 trong 2 loại có thông báo mới -> Bật chấm đỏ
+           
             setHasUnread(unreadAppExists || unreadSysExists);
             
         } catch (error) {
@@ -103,16 +103,12 @@ const EmployerCandidates = ({ navigation }) => {
         }
     };
 
-
     useFocusEffect(
         useCallback(() => {
             fetchCandidates();
-            checkUnreadNotifications(); // 🔴 Gọi hàm check khi focus
+            checkUnreadNotifications();
         }, [])
     );
-
-
-
 
     const updateStatus = async (applicationId, newStatus) => {
         try {
@@ -245,11 +241,13 @@ const EmployerCandidates = ({ navigation }) => {
         <View className="flex-1 bg-gray-50">
             <StatusBar barStyle="light-content" backgroundColor="#162E93" translucent={true} />
             
+            
             <View 
                 style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 16 }} 
-                className="pb-4 px-4 shadow-lg z-10 flex-row items-center justify-center"
+                className="pb-4 px-4 shadow-lg z-10 flex-row items-center justify-between"
             >
-                <Text className="text-white text-xl font-bold">Quản lý Ứng viên</Text>
+                <Text className="text-white text-xl font-bold">Quản lý ứng tuyển</Text>
+                <Text className="text-white text-sm font-medium">Số đơn ứng tuyển: {candidates.length}</Text>
             </View>
 
             {loading ? (
@@ -290,7 +288,6 @@ const EmployerCandidates = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.navigate('EmployerNotifications')} className="items-center">
                     <View className="relative">
                         <MaterialIcons name="notifications" size={26} color="#9ca3af" />
-                        {/* 🔴 Logic chấm đỏ */}
                         {hasUnread && (
                             <View className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-[1.5px] border-white" />
                         )}

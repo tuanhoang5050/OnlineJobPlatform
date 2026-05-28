@@ -1,23 +1,24 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Profile from './screens/User/Profile';
+import Profile from './screens/User/Candidate/Profile';
 import Login from './screens/User/Login';
-import Register from './screens/User/Register';
-import EmployerRegister from './screens/User/EmployerRegister';
-import Home from './screens/Home/Home';
-import JobDetail from './screens/Home/JobDetail';
-import SavedJobs from './screens/Home/SavedJob';
-import EmployerHome from './screens/Home/EmployerHome';
-import EmployerProfile from './screens/User/EmployerProfile';
-import AppliedJobs from './screens/Home/AppliedJobs';
-import EmployerCandidates from './screens/Home/EmployerCandidates'; // 🔴 IMPORT MÀN HÌNH MỚI
-import CreateJobPost from './screens/Home/CreateJobPost'; // 🔴 IMPORT MÀ
-import EditJobPost from './screens/Home/EditJobPost'; // 🔴 IMPORT
-import EmployerJobManager from './screens/Home/EmployerJobManager'; // 🔴 IMPORT
-import Notifications from './screens/Home/Notifications'; // 🔴
-import EmployerNotifications from './screens/Home/EmployerNotifications'; // 🔴 IMPORT
-import TransactionHistory from './screens/User/TransactionHistory'; // 🔴 IMPORT
+import Register from './screens/User/Candidate/Register';
+import EmployerRegister from './screens/User/Employer/EmployerRegister';
+import Home from './screens/Home/Candidate/Home';
+import JobDetail from './screens/Home/Candidate/JobDetail';
+import SavedJobs from './screens/Home/Candidate/SavedJob';
+import EmployerHome from './screens/Home/Employer/EmployerHome';
+import EmployerProfile from './screens/User/Employer/EmployerProfile';
+import AppliedJobs from './screens/Home/Candidate/AppliedJobs';
+import EmployerCandidates from './screens/Home/Employer/EmployerCandidates'; 
+import CreateJobPost from './screens/Home/Employer/CreateJobPost'; 
+import EditJobPost from './screens/Home/Employer/EditJobPost'; 
+import EmployerJobManager from './screens/Home/Employer/EmployerJobManager'; 
+import Notifications from './screens/Home/Candidate/Notifications'; 
+import EmployerNotifications from './screens/Home/Employer/EmployerNotifications'; 
+import TransactionHistory from './screens/User/TransactionHistory'; 
+
 
 const Stack = createNativeStackNavigator();
 

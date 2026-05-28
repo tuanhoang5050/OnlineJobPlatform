@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal, FlatList } from 'react-native';
 import { Alert, ActivityIndicator } from 'react-native'; 
-import API, { endpoints } from '../../configs/Apis'; 
+import API, { endpoints } from '../../../configs/Apis'; 
 import axios from 'axios';
 
 const EmployerRegister = ({ navigation }) => {
@@ -17,13 +17,31 @@ const EmployerRegister = ({ navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(false); 
 
-    const cities = ['Hà Nội', 'Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Bình Dương', 'Đồng Nai', 'Khác...'];
+    const cities = [
+    'An Giang', 'Bà Rịa - Vũng Tàu', 'Bạc Liêu', 'Bắc Giang', 'Bắc Kạn', 'Bắc Ninh', 'Bến Tre', 
+    'Bình Dương', 'Bình Định', 'Bình Phước', 'Bình Thuận', 'Cà Mau', 'Cao Bằng', 'Cần Thơ', 
+    'Đà Nẵng', 'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp', 'Gia Lai', 'Hà Giang', 
+    'Hà Nam', 'Hà Nội', 'Hà Tĩnh', 'Hải Dương', 'Hải Phòng', 'Hậu Giang', 'Hòa Bình', 'Hồ Chí Minh', 
+    'Hưng Yên', 'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu', 'Lạng Sơn', 'Lào Cai', 'Lâm Đồng', 
+    'Long An', 'Nam Định', 'Nghệ An', 'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình', 
+    'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng', 'Sơn La', 'Tây Ninh', 
+    'Thái Bình', 'Thái Nguyên', 'Thanh Hóa', 'Thừa Thiên Huế', 'Tiền Giang', 'Trà Vinh', 'Tuyên Quang', 
+    'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái', 'Khác...'
+    ];
 
     const handleRegister = async () => {
         if (!email || !password || !fullName || !phone || !location || !companyName) {
             Alert.alert("Thiếu thông tin", "Vui lòng điền đầy đủ thông tin!");
             return;
         }
+
+        
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(phone.trim())) {
+            Alert.alert("Số điện thoại không hợp lệ", "Vui lòng nhập số điện thoại hợp lệ!");
+            return;
+        }
+
         if (password !== confirmPassword) {
             Alert.alert("Lỗi mật khẩu", "Mật khẩu xác nhận không khớp!");
             return;
@@ -75,7 +93,7 @@ const EmployerRegister = ({ navigation }) => {
                 </View>
                 <View className="flex-row justify-center">
                     <Image 
-                        source={require('../../assets/images/login11.png')} 
+                        source={require('../../../assets/images/login11.png')} 
                         style={{ width: 150, height: 150 }} 
                         resizeMode="contain"
                     />

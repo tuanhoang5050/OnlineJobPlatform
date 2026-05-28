@@ -4,9 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { useFocusEffect } from '@react-navigation/native';
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
-// Hàm xử lý định dạng cho Đơn ứng tuyển (Application)
+
 const getAppNotificationDetail = (app) => {
     const jobTitle = app.job?.title || 'một vị trí';
     const candidateName = app.candidate?.first_name 
@@ -15,10 +15,10 @@ const getAppNotificationDetail = (app) => {
     
     if (Number(app.status) === 0) {
         return {
-            title: '🎉 Có ứng viên mới!',
+            title: 'Có ứng viên vừa ứng tuyển!',
             body: `${candidateName} vừa ứng tuyển vào vị trí "${jobTitle}" của bạn. Hãy vào xem ngay nhé!`,
             icon: 'person-add-alt-1', iconColor: '#3b82f6', bgColor: 'bg-blue-50', borderColor: 'border-blue-100',
-            navTarget: 'EmployerCandidates' // Biến lưu màn hình sẽ chuyển tới khi bấm
+            navTarget: 'EmployerCandidates' 
         };
     } else if (Number(app.status) === 1) {
         return {
@@ -44,7 +44,7 @@ const getAppNotificationDetail = (app) => {
     }
 };
 
-// Hàm xử lý định dạng cho Thông báo hệ thống (Notification)
+
 const getSystemNotificationDetail = (sysNotif) => {
     if (sysNotif.type === 'SYSTEM_APPROVAL') {
         return {
@@ -94,11 +94,11 @@ const EmployerNotifications = ({ navigation }) => {
             const myCandidates = appsData.filter(app => {
                 const jobEmployerId = app.job?.employer?.id || app.job?.employer || app.job?.employer_id;
                 return jobEmployerId === currentHrId;
-            }).map(app => ({ ...app, notifType: 'APP' })); // Đánh dấu loại là 'APP'
+            }).map(app => ({ ...app, notifType: 'APP' })); 
 
            
             const sysData = sysRes.data.results || sysRes.data;
-            const sysNotifs = sysData.map(sys => ({ ...sys, notifType: 'SYS' })); // Đánh dấu loại là 'SYS'
+            const sysNotifs = sysData.map(sys => ({ ...sys, notifType: 'SYS' })); 
 
             
             const mixedNotifications = [...myCandidates, ...sysNotifs].sort((a, b) => {
@@ -109,12 +109,12 @@ const EmployerNotifications = ({ navigation }) => {
 
             setNotifications(mixedNotifications);
 
-            // LOGIC CHECK CHƯA ĐỌC
+           
             const savedReadKeys = await AsyncStorage.getItem(`read_notifications_employer_${userId}`);
             const readKeys = savedReadKeys ? JSON.parse(savedReadKeys) : [];
 
             const unreadExists = mixedNotifications.some(item => {
-                // Ta gộp id và notifType làm key để không bị trùng (vd: APP_12, SYS_12)
+                
                 const currentKey = `${item.notifType}_${item.id}_${item.updated_date || item.created_date}`;
                 return !readKeys.includes(currentKey);
             });
@@ -158,14 +158,14 @@ const EmployerNotifications = ({ navigation }) => {
     };
 
     const renderNotificationItem = ({ item }) => {
-        // Tùy theo loại (APP hay SYS) mà ta gọi hàm định dạng phù hợp
+        
         const detail = item.notifType === 'APP' ? getAppNotificationDetail(item) : getSystemNotificationDetail(item);
         const dateObj = new Date(item.updated_date || item.created_date);
         const dateString = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()} - ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
         
         return (
             <TouchableOpacity 
-                // 🔴 Bấm vào sẽ chuyển qua trang tương ứng với loại thông báo
+                
                 onPress={() => navigation.navigate(detail.navTarget)}
                 className={`p-4 mb-3 mx-4 rounded-2xl border ${detail.bgColor} ${detail.borderColor} flex-row shadow-sm`}
             >
@@ -213,7 +213,7 @@ const EmployerNotifications = ({ navigation }) => {
                 />
             )}
 
-            {/* THANH ĐIỀU HƯỚNG DÀNH RIÊNG CHO EMPLOYER */}
+         
             <View className="flex-row bg-white py-3 border-t border-gray-100 justify-around items-center absolute bottom-0 w-full pb-6 shadow-2xl">
                 <TouchableOpacity onPress={() => navigation.navigate('EmployerHome')} className="items-center">
                     <MaterialIcons name="dashboard" size={26} color="#9ca3af" />

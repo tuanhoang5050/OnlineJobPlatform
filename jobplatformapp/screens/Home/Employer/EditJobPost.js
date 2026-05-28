@@ -7,7 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
-import { HOST } from '../../configs/Apis';
+import { HOST } from '../../../configs/Apis';
 
 const decodeHTML = (html) => {
     if (!html) return '';
@@ -72,6 +72,7 @@ const EditJobPost = ({ route, navigation }) => {
                 }
 
                 setLoadingCandidates(true);
+
                 const appRes = await axios.get(`${HOST}/api/applications/`, config);
                 const allApps = appRes.data.results || appRes.data;
                 const jobApps = allApps.filter(app => String(app.job?.id || app.job) === String(job.id));
@@ -237,11 +238,19 @@ const EditJobPost = ({ route, navigation }) => {
             <StatusBar barStyle="light-content" backgroundColor="#162E93" translucent={true} />
             
             <View style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 12 }} className="px-4 shadow-lg z-10">
+                
+                {/* 🔴 HEADER MỚI CÓ HIỂN THỊ LƯỢT XEM */}
                 <View className="flex-row items-center mb-4">
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-white/20 rounded-full mr-4">
                         <MaterialIcons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text className="text-white text-xl font-bold flex-1" numberOfLines={1}>Quản lý: {job.title}</Text>
+                    <View className="flex-1">
+                        <Text className="text-white text-xl font-bold" numberOfLines={1}>Quản lý: {job.title}</Text>
+                        <View className="flex-row items-center mt-1">
+                            <MaterialIcons name="visibility" size={14} color="#fef08a" />
+                            <Text className="text-yellow-200 text-xs font-bold ml-1">{job.views_count || 0} lượt xem</Text>
+                        </View>
+                    </View>
                 </View>
 
                 <View className="flex-row">
@@ -269,7 +278,7 @@ const EditJobPost = ({ route, navigation }) => {
                         <ScrollView 
                             showsVerticalScrollIndicator={false} 
                             className="px-4 pt-6" 
-                            contentContainerStyle={{ paddingBottom: 120 }} // Đã hạ bớt vì chỉ còn 1 nút ở đáy
+                            contentContainerStyle={{ paddingBottom: 120 }} 
                             keyboardShouldPersistTaps="handled"
                         >
                             <View className="mb-6">
@@ -303,7 +312,7 @@ const EditJobPost = ({ route, navigation }) => {
                                 <TextInput value={description} onChangeText={setDescription} multiline numberOfLines={10} textAlignVertical="top" className="bg-gray-100 p-4 rounded-xl" />
                             </View>
 
-                            {/* 🔴 NÚT XÓA TIN TUYỂN DỤNG ĐƯỢC CHUYỂN VÀO ĐÂY */}
+                            
                             <TouchableOpacity 
                                 onPress={confirmDeleteJob} 
                                 disabled={loading} 
@@ -314,7 +323,7 @@ const EditJobPost = ({ route, navigation }) => {
 
                         </ScrollView>
 
-                        {/* CHỈ GIỮ LẠI NÚT LƯU THAY ĐỔI Ở DƯỚI ĐÁY MÀN HÌNH */}
+                        
                         <View className="absolute bottom-0 w-full bg-white px-5 py-3 border-t border-gray-100 shadow-2xl pb-6">
                             <TouchableOpacity 
                                 onPress={handleUpdateJob} 
