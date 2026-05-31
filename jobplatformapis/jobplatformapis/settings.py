@@ -44,7 +44,6 @@ MOMO_PARTNER_CODE = "MOMOBKUN20180529"
 MOMO_ACCESS_KEY = "klm05TvNBzhg7h7j"
 MOMO_SECRET_KEY = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa"
 MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
-
 MOMO_RETURN_URL = "https://vicareer.app/payment-success"
 MOMO_IPN_URL = "https://vicareer.app/momo-ipn"
 

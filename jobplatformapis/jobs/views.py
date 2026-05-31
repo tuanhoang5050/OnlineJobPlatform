@@ -64,7 +64,7 @@ class JobPostViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Bạn đã nộp cv vào công việc này và đơn đang được xử lý.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        file_nhan_duoc = request.data.get('cv')
+        file_nhan_duoc = request.data.get('cv_file')
         noidung_thu = request.data.get('content', '')
 
         application = Application.objects.create(

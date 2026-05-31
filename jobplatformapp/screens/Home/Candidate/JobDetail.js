@@ -125,7 +125,7 @@ const JobDetail = ({ route, navigation }) => {
                             const savedLikesStr = await AsyncStorage.getItem(`likedJobs_${userId}`);
                             if (isActive && savedLikesStr) {
                                 setLikedJobs(JSON.parse(savedLikesStr));
-                            }
+                            } else { setLikedJobs([]); }
                         }
                         
                         try {

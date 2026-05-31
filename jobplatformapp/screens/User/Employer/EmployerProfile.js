@@ -413,7 +413,7 @@ const EmployerProfile = ({ navigation }) => {
                         <MaterialIcons name="chevron-right" size={24} color="#ccc" />
                     </TouchableOpacity>
 
-                    {/* 🔴 THÊM NÚT XEM THỐNG KÊ */}
+                   
                     <Divider />
                     <TouchableOpacity 
                         onPress={handleOpenStats} 
@@ -443,7 +443,7 @@ const EmployerProfile = ({ navigation }) => {
                 </View>
             </ScrollView>
 
-            {/* MODAL CHỌN CỔNG THANH TOÁN */}
+           
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -485,7 +485,7 @@ const EmployerProfile = ({ navigation }) => {
                 </View>
             </Modal>
 
-            {/* 🔴 MODAL THỐNG KÊ TUYỂN DỤNG */}
+            
             <Modal
                 animationType="slide"
                 transparent={true}

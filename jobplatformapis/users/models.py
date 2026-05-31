@@ -49,9 +49,9 @@ class Notification(BaseModel):
 
 class Transaction(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
-    payment_id = models.CharField(max_length=100, unique=True) # Mã từ PayPal
+    payment_id = models.CharField(max_length=100, unique=True)
     amount = models.CharField(max_length=20)
-    status = models.CharField(max_length=20, default='CREATED') # CREATED, COMPLETED, FAILED
+    status = models.CharField(max_length=20, default='CREATED')
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} - {self.status}"

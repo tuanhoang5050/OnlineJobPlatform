@@ -73,10 +73,10 @@ const EditJobPost = ({ route, navigation }) => {
 
                 setLoadingCandidates(true);
 
-                const appRes = await axios.get(`${HOST}/api/applications/`, config);
+                const appRes = await axios.get(`${HOST}/api/jobs/${job.id}/applications/`, config);
                 const allApps = appRes.data.results || appRes.data;
-                const jobApps = allApps.filter(app => String(app.job?.id || app.job) === String(job.id));
-                setCandidates(jobApps);
+                
+                setCandidates(allApps);
                 
             } catch (error) {
                 console.error("Lỗi tải dữ liệu:", error);
@@ -239,7 +239,7 @@ const EditJobPost = ({ route, navigation }) => {
             
             <View style={{ backgroundColor: "#162E93", paddingTop: statusBarHeight + 12 }} className="px-4 shadow-lg z-10">
                 
-                {/* 🔴 HEADER MỚI CÓ HIỂN THỊ LƯỢT XEM */}
+                
                 <View className="flex-row items-center mb-4">
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-white/20 rounded-full mr-4">
                         <MaterialIcons name="arrow-back" size={24} color="white" />
